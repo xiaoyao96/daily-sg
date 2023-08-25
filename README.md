@@ -1,8 +1,11 @@
-# daily-sg
+# daily-sg 
 
-我司的自动日报命令行工具
+[![NPM version](https://img.shields.io/npm/v/daily-sg.svg)](https://www.npmjs.com/package/daily-sg)  
+
+上古的自动日报命令行工具
 
 - 获取当月的所有漏填日报（包含今日）自动填写
+- 可自动给内容加日期前缀
 
 ## 安装
 
