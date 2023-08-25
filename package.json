@@ -1,12 +1,12 @@
 {
-  "name": "daily-sgwl",
+  "name": "daily-sg",
   "version": "1.0.0",
   "description": "",
   "files": [
     "dist/**/*.js"
   ],
   "bin": {
-    "daily-sgwl": "./dist/cli.js"
+    "daily-sg": "./dist/cli.js"
   },
   "scripts": {
     "dev": "export NODE_TLS_REJECT_UNAUTHORIZED=0 && ts-node src/cli.ts",

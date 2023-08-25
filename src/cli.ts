@@ -7,7 +7,7 @@ import { start } from ".";
 const { version } = require("../package.json");
 const program = new Command();
 
-program.name("daily-sgwl").description("自动执行上古网络日报").version(version);
+program.name("daily-sg").description("自动执行上古网络日报").version(version);
 
 program
   .command("start")

@@ -1,4 +1,4 @@
-# daily-sgwl
+# daily-sg
 
 我司的自动日报命令行工具
 
@@ -7,13 +7,13 @@
 ## 安装
 
 ```shell
-npm install -g daily-sgwl
+npm install -g daily-sg
 ```
 
 ## 使用
 
 ```shell
-daily-sgwl start [日报内容] -u [用户名] -p [密码] -pre [是否给日报内容自动添加日期前缀]
+daily-sg start [日报内容] -u [用户名] -p [密码] -pre [是否给日报内容自动添加日期前缀]
 ```
 
 | 参数          | 默认值 | 说明                                                                                               |
@@ -27,7 +27,7 @@ daily-sgwl start [日报内容] -u [用户名] -p [密码] -pre [是否给日报
 用户名为 zhangsan，密码为 123456，日报内容为“负责 xxx 项目的日常维护与迭代。”
 
 ```shell
-daily-sgwl start "负责xxx项目的日常维护与迭代。" -u zhangsan -p 123456 -pre true
+daily-sg start "负责xxx项目的日常维护与迭代。" -u zhangsan -p 123456 -pre true
 ```
 
 ```
