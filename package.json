@@ -1,0 +1,32 @@
+{
+  "name": "daily-sgwl",
+  "version": "1.0.1",
+  "description": "",
+  "files": [
+    "dist/**/*.js"
+  ],
+  "bin": {
+    "daily-sgwl": "./dist/cli.js"
+  },
+  "scripts": {
+    "dev": "export NODE_TLS_REJECT_UNAUTHORIZED=0 && ts-node src/cli.ts",
+    "build": "tsc",
+    "publish": "publish"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.4.0",
+    "chalk": "4.1.2",
+    "commander": "^11.0.0",
+    "dayjs": "^1.11.9",
+    "ora": "5.4.1",
+    "request": "^2.88.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.6",
+    "@types/request": "^2.48.8",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+}
