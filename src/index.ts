@@ -42,7 +42,7 @@ export async function start({
     const { data: dateTime } = await getDateTime();
     console.log(chalk.green(`：${dateTime}`));
 
-    spainner.text = "正在获取本月的未完成日报数量：";
+    spainner.text = "正在获取本月的未完成报告数量";
     const {
       data: { data: list },
     } = await queryCalendar({
@@ -56,7 +56,9 @@ export async function start({
         ["上午", "下午"].includes(item.recordTypeStr) &&
         dayjs(dateTime).diff(item.start, "day") >= 0
     );
-    console.log(chalk.green(`：${undoList.length}个`));
+    console.log(
+      chalk.green(`：${undoList.length}个。（一般一天2个，上午与下午各1个）`)
+    );
     for (let i = 0; i < undoList.length; i++) {
       spainner.text = `正在发布日报: ${i + 1}/${undoList.length}`;
       const undoItem = undoList[i];
@@ -74,7 +76,7 @@ export async function start({
         content: itemContent,
       });
     }
-    spainner.succeed(`已完成日报: ${undoList.length}个`);
+    spainner.succeed(`已完成报告: ${undoList.length}个`);
     // console.log(chalk.green(`已完成日报: ${undoList.length}个`));
   } catch (err: any) {
     spainner.text = "操作失败";
