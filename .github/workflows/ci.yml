@@ -3,7 +3,7 @@ name: daily-sg
 on:
   schedule:
     - cron: "0 9 * * *"
-
+  workflow_dispatch: 
 jobs:
   auto-daily:
     runs-on: ubuntu-latest
