@@ -54,11 +54,22 @@ export async function start({
       (item: any) =>
         ["漏填", ""].includes(item.handFlag) &&
         ["上午", "下午"].includes(item.recordTypeStr) &&
-        dayjs(dateTime).diff(item.start, "day") >= 0
+        dayjs(dateTime.substring(0, 10)).diff(
+          item.start.substring(0, 10),
+          "day"
+        ) >= 0
     );
+
     console.log(
-      chalk.green(`：${undoList.length}个。（一般一天2个，上午与下午各1个）`)
+      chalk.green(
+        `：\n${undoList
+          .map((item: any) => item.start + item.recordTypeStr)
+          .join("\n")}\n总共${
+          undoList.length
+        }个。（一般一天2个，上午与下午各1个）`
+      )
     );
+
     for (let i = 0; i < undoList.length; i++) {
       spainner.text = `正在发布日报: ${i + 1}/${undoList.length}`;
       const undoItem = undoList[i];
@@ -82,6 +93,7 @@ export async function start({
     spainner.text = "操作失败";
     console.log(chalk.red(`\n错误：`, err.message));
     spainner.fail();
+    process.exit(1)
   }
 }
 
@@ -102,37 +114,4 @@ async function getProjectId() {
     }
   }
   throw new Error("未找到项目Id");
-}
-
-// async function insertWorker1({ date, type, projectId, content }) {
-//     const { userInfo } = getState()
-//   return insertWorker({
-//     userId: userInfo.userId,
-//     deptIds: userInfo.deptIds,
-
-//   })
-//   return new Promise((resolve, reject) => {
-//     $http
-//       .post(configApi.insertWorker, {
-//         userId: userInfo.userId,
-//         deptIds: userInfo.deptIds,
-//         recordDate: date,
-//         recordType: type,
-//         times: 4,
-//         projectId: projectId,
-//         taskId: "",
-//         content,
-//       })
-//       .done((res) => {
-//         if (res.status) {
-//           resolve(true);
-//         } else {
-//           reject();
-//         }
-//       });
-//   });
-// }
-
-function sleep(t = 0) {
-  return new Promise((r) => setTimeout(r, t));
 }
