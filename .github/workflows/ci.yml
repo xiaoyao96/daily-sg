@@ -1,0 +1,27 @@
+name: daily-sg
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+
+jobs:
+  auto-daily:
+    runs-on: ubuntu-latest
+    steps:
+      # 步骤名获取最新代码
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
+      # 安装node环境
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+      # 安装依赖
+      - name: Installing Dependencies
+        run: npm install
+      # 构建
+      - name: Build Project
+        run: npm run build
+      # 执行命令
+      - name: Run shell
+        run: node ./dist/cli.js start ${{ env.DAILY_CONTENT }} -u ${{ secrets.USER }} -p ${{ secrets.PWD }} --pre true
