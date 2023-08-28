@@ -15,11 +15,13 @@ export async function start({
   passWord,
   content,
   prefix,
+  date,
 }: {
   loginName: string;
   passWord: string;
   content: string;
   prefix: boolean;
+  date: string;
 }) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
   const spainner = ora("loading").start();
@@ -41,13 +43,13 @@ export async function start({
     spainner.text = "正在获取服务器时间";
     const { data: dateTime } = await getDateTime();
     console.log(chalk.green(`：${dateTime}`));
-
-    spainner.text = "正在获取本月的未完成报告数量";
+    let recordDate = date || dateTime.substring(0, 7);
+    spainner.text = `正在获取${recordDate}的未完成报告数量`;
     const {
       data: { data: list },
     } = await queryCalendar({
       userId: userInfo.userId,
-      recordDate: dateTime.substring(0, 7),
+      recordDate,
     });
 
     const undoList = list.filter(
@@ -63,7 +65,7 @@ export async function start({
     console.log(
       chalk.green(
         `：\n${undoList
-          .map((item: any) => item.start + item.recordTypeStr)
+          .map((item: any) => item.start.substring(0, 10) + item.recordTypeStr)
           .join("\n")}\n总共${
           undoList.length
         }个。（一般一天2个，上午与下午各1个）`
@@ -93,7 +95,7 @@ export async function start({
     spainner.text = "操作失败";
     console.log(chalk.red(`\n错误：`, err.message));
     spainner.fail();
-    process.exit(1)
+    process.exit(1);
   }
 }
 
