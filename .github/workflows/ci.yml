@@ -24,4 +24,4 @@ jobs:
         run: npm run build
       # 执行命令
       - name: Run shell
-        run: node ./dist/cli.js start ${{ env.DAILY_CONTENT }} -u ${{ secrets.USER }} -p ${{ secrets.PWD }} -pre true
+        run: node ./dist/cli.js start $DAILY_CONTENT -u ${{ secrets.USER }} -p ${{ secrets.PWD }} -pre true
