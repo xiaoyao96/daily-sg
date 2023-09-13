@@ -12,7 +12,7 @@ const axios = Axios.create({
     "User-Agent":
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.54",
   },
-  timeout: 5000,
+  timeout: 20000,
   httpsAgent: new https.Agent({
     rejectUnauthorized: false,
   }),
