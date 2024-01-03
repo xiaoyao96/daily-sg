@@ -36,14 +36,16 @@ export async function start({
     setState("cookie", res.headers["set-cookie"]?.[0].split(";")[0]);
     setState("userInfo", res.data.data);
     const { userInfo } = getState();
-    spainner.text = "正在获取项目ID";
-    const projectId = await getProjectId();
-    console.log(chalk.green(`：${projectId}`));
 
-    spainner.text = "正在获取服务器时间";
+    spainner.text = "当前选择月份";
     const { data: dateTime } = await getDateTime();
-    console.log(chalk.green(`：${dateTime}`));
+    
     let recordDate = date || dateTime.substring(0, 7);
+    console.log(chalk.green(`：${recordDate}`));
+    spainner.text = "正在获取项目ID与项目名称";
+    const { id: projectId, name } = await getProjectId(recordDate.substring(0, 4));
+    console.log(chalk.green(`：${projectId}、${name}`));
+
     spainner.text = `正在获取${recordDate}的未完成报告数量`;
     const {
       data: { data: list },
@@ -103,16 +105,16 @@ process.on("exit", () => {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "1";
 });
 
-async function getProjectId() {
+async function getProjectId(year: string) {
   const { userInfo } = getState();
 
   const { data: res } = await getProjectList({
     userId: userInfo.userId,
   });
   if (res.status) {
-    const target = res.data.find((item: any) => item.name.includes("富民"));
+    const target = res.data.find((item: any) => item.name.includes("富民") && item.name.includes(year));
     if (target) {
-      return target.id;
+      return target;
     }
   }
   throw new Error("未找到项目Id");
