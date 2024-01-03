@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "export NODE_TLS_REJECT_UNAUTHORIZED=0 && ts-node src/cli.ts",
     "build": "tsc",
-    "publish": "publish"
+    "preparepublish": "tsc"
   },
   "author": "",
   "license": "ISC",
