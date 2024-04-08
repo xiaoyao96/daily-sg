@@ -6,8 +6,8 @@ import { getState } from "../store";
 const axios = Axios.create({
   baseURL: BaseUrl,
   headers: {
-    Host: "www.jssgwl.com:4431",
-    Origin: "https://www.jssgwl.com:4431/",
+    Host: "piscn.vicp.cc:4431",
+    Origin: "https://piscn.vicp.cc:4431/",
     "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
     "User-Agent":
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.54",
