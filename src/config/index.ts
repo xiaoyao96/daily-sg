@@ -1,2 +1,2 @@
-export const BaseUrl = 'https://www.jssgwl.com:4431//sgoa/';
+export const BaseUrl = 'https://piscn.vicp.cc:4431/sgoa/';
 
