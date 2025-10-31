@@ -28,7 +28,7 @@ program
       passWord: options.password,
       content: str,
       prefix: options.prefix,
-      date: options.date
+      date: options.date,
     });
   });
 
