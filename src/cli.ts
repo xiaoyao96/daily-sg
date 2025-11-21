@@ -24,8 +24,8 @@ program
     }
 
     start({
-      loginName: options.username,
-      passWord: options.password,
+      username: options.username,
+      password: options.password,
       content: str,
       prefix: options.prefix,
       date: options.date,

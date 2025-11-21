@@ -7,6 +7,9 @@
 - 获取当月的所有漏填日报（包含今日）自动填写
 - 可自动给内容加日期前缀
 
+> 最近更新时间：2025-11-21
+> 说明：1.0.x 的接口全废弃了，已适配上古新接口。
+
 ## 安装
 
 ```shell
@@ -45,11 +48,11 @@ daily-sg start "负责xxx项目的日常维护与迭代。" -u zhangsan -p 12345
 ✔ 已完成日报: 2个
 ```
 
-
-## 利用github自动化日报
+## 利用 github 自动化日报
 
 ### 1、创建工程
-github中新建一个工程，创建.github/workflows/ci.yml 文件。yml代码如下：
+
+github 中新建一个工程，创建.github/workflows/ci.yml 文件。yml 代码如下：
 
 ```yml
 name: daily-sg
@@ -57,7 +60,7 @@ name: daily-sg
 on:
   schedule:
     # 每天下午5点发日报
-    - cron: "0 9 * * *" 
+    - cron: "0 9 * * *"
   workflow_dispatch:
 jobs:
   auto-daily:
@@ -74,23 +77,21 @@ jobs:
       # 执行命令
       - name: Run shell
         run: npx daily-sg start "这里为日报内容" -u ${{ secrets.USER }} -p ${{ secrets.PWD }} -pre true
-
 ```
 
 然后提交代码并推送到你的仓库
 
 ### 2、配置环境变量
 
-可以留意到yml脚本命令中含有环境变量`secrets.USER`和`secrets.PWD`，为了安全起见，github提供了环境变量功能，操作方法如下：  
+可以留意到 yml 脚本命令中含有环境变量`secrets.USER`和`secrets.PWD`，为了安全起见，github 提供了环境变量功能，操作方法如下：
 
-1、进入该项目的settings，选择`"Security"`-`"Actions secrets and variables"`-`"Action"`  
+1、进入该项目的 settings，选择`"Security"`-`"Actions secrets and variables"`-`"Action"`
 
 2、进入`"Action"`页面后，在`"Repository secrets"`项下创建你登录账号`"USER"`变量与密码`"PWD"`变量。
 
-如果你不想使用变量，也可以直接将上述yml代码中的`${{ secrets.USER }}`和`${{ secrets.PWD }}` 部分替换为具体值。
+如果你不想使用变量，也可以直接将上述 yml 代码中的`${{ secrets.USER }}`和`${{ secrets.PWD }}` 部分替换为具体值。
 
 ### 3、测试
 
-一般进行到第2步后，actions就已经生效了，脚本将会每天下午5点执行。但如果你想手动执行试试，则可按如下操作：  
+一般进行到第 2 步后，actions 就已经生效了，脚本将会每天下午 5 点执行。但如果你想手动执行试试，则可按如下操作：  
 在该工程下进入`"Actions"`页面，在左侧选择`"daily-sg"`，在右侧找到`"Run workflow"`按钮，选择分支后手动刷新页面等待结果，可点击进入查看执行日志。
-
