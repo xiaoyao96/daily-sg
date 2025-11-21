@@ -1,24 +1,26 @@
 import chalk from "chalk";
 import {
-  getDateTime,
+  getInfo,
+  // getDateTime,
   getProjectList,
-  insertWorker,
   login,
-  queryCalendar,
+  queryLegalCalendar,
+  queryTimeAndAttendance,
+  saveOrUpdateWorker,
 } from "./api";
 import { getState, setState } from "./store";
 import dayjs from "dayjs";
 import ora from "ora";
 
 export async function start({
-  loginName,
-  passWord,
+  username,
+  password,
   content,
   prefix,
   date,
 }: {
-  loginName: string;
-  passWord: string;
+  username: string;
+  password: string;
   content: string;
   prefix: boolean;
   date: string;
@@ -28,80 +30,76 @@ export async function start({
   try {
     spainner.text = "正在登录中";
     const res = await login({
-      loginName,
-      passWord,
+      username,
+      password,
     });
-    console.log(chalk.green(`登录成功：${loginName}`));
-
+    console.log(chalk.green(`登录成功：${username}`));
     setState("cookie", res.headers["set-cookie"]?.[0].split(";")[0]);
     setState("userInfo", res.data.data);
-    const { userInfo } = getState();
 
     spainner.text = "当前选择月份";
-    const { data: dateTime } = await getDateTime();
 
-    let recordDate = date || dateTime.substring(0, 7);
-    console.log(chalk.green(`：${recordDate}`));
+    const { data } = await getInfo();
+    const now = dayjs(data.data.user.loginDate, "YYYY-MM-DD HH:mm:SS");
+    const dateTime = date || now.format("YYYY-MM");
+
+    console.log(chalk.green(`：${dateTime}`));
     spainner.text = "正在获取项目ID与项目名称";
-    const { id: projectId, name } = await getProjectId(
-      recordDate.substring(0, 4)
-    );
-    console.log(chalk.green(`：${projectId}、${name}`));
+    const { id: projectId, projectName } = await getProjectId(dateTime + "-01");
+    console.log(chalk.green(`：${projectId}、${projectName}`));
 
-    spainner.text = `正在获取${recordDate}的未完成报告数量`;
+    spainner.text = `正在获取${dateTime}的未完成报告数量`;
+
+    const [year, month] = dateTime.split("-");
     const {
-      data: { data: list },
-    } = await queryCalendar({
-      userId: userInfo.userId,
-      recordDate,
+      data: { data: legalCalendar },
+    } = await queryLegalCalendar({
+      year,
+      month,
     });
 
-    const undoList = list.filter(
-      (item: any) =>
-        ["漏填", ""].includes(item.handFlag) &&
-        ["上午", "下午"].includes(item.recordTypeStr) &&
-        dayjs(dateTime.substring(0, 10)).diff(
-          item.start.substring(0, 10),
-          "day"
-        ) >= 0
+    const {
+      data: { data: list },
+    } = await queryTimeAndAttendance({ year, month });
+
+    const workingList = list.filter((item: any) =>
+      needWorking(item.workDate, legalCalendar)
     );
+
+    // console.log("workingList", workingList);
+
+    const undoList = workingList.filter(
+      (item: any) =>
+        (dayjs(item.workDate).isSame(now, "day") ||
+          dayjs(item.workDate).isBefore(now, "day")) &&
+        item.workingList.length !== 2
+    );
+
+    const saveList = undoListToSaveList(undoList, {
+      projectId,
+      recordContent: content,
+      prefix,
+    });
 
     console.log(
       chalk.green(
-        `：\n${undoList
-          .map((item: any) => item.start.substring(0, 10) + item.recordTypeStr)
-          .join("\n")}\n总共${
-          undoList.length
+        `：\n${saveList.map((item) => item.title).join("\n")}\n总共${
+          saveList.length
         }个。（一般一天2个，上午与下午各1个）`
       )
     );
+
+    // return;
     let errorCount = 0;
-    for (let i = 0; i < undoList.length; i++) {
+    for (let i = 0; i < saveList.length; i++) {
       if (errorCount === 0) {
         spainner.text = `正在发布日报: ${i + 1}/${
-          undoList.length
-        } ${chalk.green(
-          `（${
-            undoList[i].start.substring(0, 10) + undoList[i].recordTypeStr
-          }）`
-        )}`;
+          saveList.length
+        } ${chalk.green(`（${saveList[i].title}）`)}`;
       }
 
-      const undoItem = undoList[i];
-      const recordDate = undoItem.start.substring(0, 10);
-      const recordType: number = undoItem.recordTypeStr === "上午" ? 1 : 2;
-      const itemContent = prefix
-        ? `${recordDate}${undoItem.recordTypeStr}完成工作：\n${content}`
-        : content;
       try {
-        await insertWorker({
-          userId: userInfo.userId,
-          deptIds: userInfo.deptIds,
-          projectId,
-          recordDate,
-          recordType,
-          content: itemContent,
-        });
+        await saveOrUpdateWorker(saveList[i].sendData);
       } catch (err: any) {
         if (errorCount < 3) {
           console.log(
@@ -123,6 +121,7 @@ export async function start({
   } catch (err: any) {
     spainner.text = "操作失败";
     console.log(chalk.red(`\n错误：`, err.message));
+    console.error(err);
     spainner.fail();
     process.exit(1);
   }
@@ -132,19 +131,106 @@ process.on("exit", () => {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "1";
 });
 
-async function getProjectId(year: string) {
-  const { userInfo } = getState();
-
-  const { data: res } = await getProjectList({
-    userId: userInfo.userId,
-  });
-  if (res.status) {
+async function getProjectId(recordDate: string) {
+  const year = dayjs(recordDate, "YYYY-MM-DD").format("YYYY");
+  const { data: res } = await getProjectList({ recordDate });
+  if (res.data) {
     const target = res.data.find(
-      (item: any) => item.name.includes("富民") && item.name.includes(year)
+      (item: any) =>
+        item.projectName.includes("富民") && item.projectName.includes(year)
     );
     if (target) {
       return target;
     }
   }
   throw new Error("未找到项目Id");
+}
+
+interface LegalCalendarItem {
+  legalDate: string;
+  /** 1-工作 2-放假 */
+  workingFlag: number;
+}
+
+/**
+ *
+ * @param date 日期
+ */
+function needWorking(date: string, legalCalendar: LegalCalendarItem[]) {
+  const d = dayjs(date, "YYYY-MM-DD");
+  const target = legalCalendar.find(
+    (item) => item.legalDate === d.format("YYYY-MM-DD")
+  );
+  if (target) {
+    return target.workingFlag === 1;
+  }
+
+  // 默认工作日周一到周五
+  return d.day() !== 0 && d.day() !== 6;
+}
+
+interface SaveItem {
+  title: string;
+  sendData: {
+    projectId: string;
+    recordType: string;
+    workingHours: number;
+    recordContent: string;
+    recordDate: string;
+  };
+}
+
+interface WorkItem {
+  personName: string;
+  workDate: string;
+  workNo: string;
+  workingList: {
+    recordType: number;
+  }[];
+}
+
+function undoListToSaveList(
+  undoList: WorkItem[],
+  config: {
+    projectId: string;
+    recordContent: string;
+    prefix: boolean;
+  }
+): SaveItem[] {
+  const saveList: SaveItem[] = [];
+  undoList.forEach((item) => {
+    if (!item.workingList.some((item) => item.recordType === 1)) {
+      // 补充上午
+      saveList.push({
+        title: `${item.workDate}上午`,
+        sendData: {
+          projectId: config.projectId,
+          recordType: "1",
+          workingHours: 4,
+          recordContent: config.prefix
+            ? `${item.workDate}上午完成工作：\n${config.recordContent}`
+            : config.recordContent,
+          recordDate: item.workDate,
+        },
+      });
+    }
+
+    if (!item.workingList.some((item) => item.recordType === 2)) {
+      // 补充下午
+      saveList.push({
+        title: `${item.workDate}下午`,
+        sendData: {
+          projectId: config.projectId,
+          recordType: "2",
+          workingHours: 4,
+          recordContent: config.prefix
+            ? `${item.workDate}下午完成工作：\n${config.recordContent}`
+            : config.recordContent,
+          recordDate: item.workDate,
+        },
+      });
+    }
+  });
+
+  return saveList;
 }

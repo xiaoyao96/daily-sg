@@ -2,48 +2,43 @@ import { AxiosResponse } from "axios";
 import axios from "../utils/request";
 
 interface LoginParams {
-  loginName: string;
-  passWord: string;
+  username: string;
+  password: string;
 }
 
-export function login({ loginName, passWord }: LoginParams) {
-  return axios.post("/user/login", {
-    loginName,
-    passWord,
-    openId: "",
+export function login({ username, password }: LoginParams) {
+  return axios.post("/login", {
+    username,
+    password,
   });
 }
 
-export function getProjectList({ userId }: { userId: number }) {
-  return axios.post("/project/queryByUserId", {
-    userId,
+export function getProjectList(params: { recordDate: string }) {
+  return axios.get("/project/management/queryByUserId", {
+    params,
   });
 }
 
-export function getDateTime(): Promise<AxiosResponse<string>> {
-  return axios.post("/common/getDateTime");
+export function getInfo() {
+  return axios.get("/getInfo");
 }
 
-export function insertWorker(params: {
-  userId: number;
-  deptIds: string;
-  recordDate: string;
-  recordType: number;
-  projectId: number;
-  content: string;
+export function saveOrUpdateWorker(params: any) {
+  return axios.post("/work/saveOrUpdate", params);
+}
+
+export function queryTimeAndAttendance(params: {
+  year: string;
+  month: string;
 }) {
-  return axios.post("/record/insert", {
-    userId: params.userId,
-    deptIds: params.deptIds,
-    recordDate: params.recordDate,
-    recordType: params.recordType,
-    times: 4,
-    projectId: params.projectId,
-    taskId: "",
-    content: params.content,
+  return axios.get("/work/queryTimeAndAttendance", {
+    params,
   });
 }
 
-export function queryCalendar(params: { userId: number; recordDate: string }) {
-  return axios.post("/record/queryCalendar", params);
+/** 查询法定节假日hu */
+export function queryLegalCalendar(params: { year: string; month: string }) {
+  return axios.get("/work/queryCalendar", {
+    params,
+  });
 }

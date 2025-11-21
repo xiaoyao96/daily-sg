@@ -3,12 +3,14 @@ import https from "https";
 import { BaseUrl } from "../config";
 import { getState } from "../store";
 
+const url = new URL(BaseUrl);
+
 const axios = Axios.create({
   baseURL: BaseUrl,
   headers: {
-    Host: "piscn.vicp.cc:4431",
-    Origin: "https://piscn.vicp.cc:4431/",
-    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+    Host: url.host,
+    Origin: url.origin,
+    "Content-Type": "application/json;charset=UTF-8",
     "User-Agent":
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.54",
   },
@@ -22,16 +24,17 @@ const axios = Axios.create({
 axios.interceptors.request.use((req) => {
   const { userInfo, cookie } = getState();
   if (userInfo) {
-    req.headers["token"] = userInfo.uuid;
+    req.headers["authorization"] = `Bearer ${userInfo.token}`;
     req.headers["cookie"] = cookie;
   }
   return req;
 });
 
 axios.interceptors.response.use((res) => {
+  // console.log("res.data", res.data);
   if (typeof res.data === "string") {
     return res;
-  } else if (typeof res.data === "object" && res.data.status) {
+  } else if (typeof res.data === "object" && res.data.code === 200) {
     return res;
   }
   return Promise.reject(res.data);
