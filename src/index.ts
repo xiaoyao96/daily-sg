@@ -62,20 +62,14 @@ export async function start({
       data: { data: list },
     } = await queryTimeAndAttendance({ year, month });
 
-    const workingList = list.filter((item: any) =>
-      needWorking(item.workDate, legalCalendar)
-    );
-
-    // console.log("workingList", workingList);
-
-    const undoList = workingList.filter(
+    const workingList = list.filter(
       (item: any) =>
+        needWorking(item.workDate, legalCalendar) &&
         (dayjs(item.workDate).isSame(now, "day") ||
-          dayjs(item.workDate).isBefore(now, "day")) &&
-        item.workingList.length !== 2
+          dayjs(item.workDate).isBefore(now, "day"))
     );
 
-    const saveList = undoListToSaveList(undoList, {
+    const saveList = workingListToSaveList(workingList, {
       projectId,
       recordContent: content,
       prefix,
@@ -116,8 +110,8 @@ export async function start({
       }
       errorCount = 0;
     }
-    spainner.succeed(`已完成报告: ${undoList.length}个`);
-    // console.log(chalk.green(`已完成日报: ${undoList.length}个`));
+    spainner.succeed(`已完成报告: ${saveList.length}个`);
+    // console.log(chalk.green(`已完成日报: ${workingList.length}个`));
   } catch (err: any) {
     spainner.text = "操作失败";
     console.log(chalk.red(`\n错误：`, err.message));
@@ -186,11 +180,15 @@ interface WorkItem {
   workNo: string;
   workingList: {
     recordType: number;
+    projectId: string | null;
+    workingHours: number;
+    recordContent: string;
+    recordDate: string;
   }[];
 }
 
-function undoListToSaveList(
-  undoList: WorkItem[],
+function workingListToSaveList(
+  workingList: WorkItem[],
   config: {
     projectId: string;
     recordContent: string;
@@ -198,8 +196,15 @@ function undoListToSaveList(
   }
 ): SaveItem[] {
   const saveList: SaveItem[] = [];
-  undoList.forEach((item) => {
-    if (!item.workingList.some((item) => item.recordType === 1)) {
+  workingList.forEach((item) => {
+    if (
+      item.workingList.some(
+        (item) =>
+          item.recordType === 1 &&
+          item.projectId === null &&
+          item.recordContent === null
+      )
+    ) {
       // 补充上午
       saveList.push({
         title: `${item.workDate}上午`,
@@ -215,7 +220,14 @@ function undoListToSaveList(
       });
     }
 
-    if (!item.workingList.some((item) => item.recordType === 2)) {
+    if (
+      item.workingList.some(
+        (item) =>
+          item.recordType === 2 &&
+          item.projectId === null &&
+          item.recordContent === null
+      )
+    ) {
       // 补充下午
       saveList.push({
         title: `${item.workDate}下午`,
