@@ -1,14 +1,13 @@
 import chalk from "chalk";
 import {
   getInfo,
-  // getDateTime,
   getProjectList,
   login,
   queryLegalCalendar,
   queryTimeAndAttendance,
   saveOrUpdateWorker,
 } from "./api";
-import { getState, setState } from "./store";
+import { setState } from "./store";
 import dayjs from "dayjs";
 import ora from "ora";
 
@@ -44,12 +43,8 @@ export async function start({
     const dateTime = date || now.format("YYYY-MM");
 
     console.log(chalk.green(`：${dateTime}`));
-    spainner.text = "正在获取项目ID与项目名称";
-    const { id: projectId, projectName } = await getProjectId(dateTime + "-01");
-    console.log(chalk.green(`：${projectId}、${projectName}`));
 
     spainner.text = `正在获取${dateTime}的未完成报告数量`;
-
     const [year, month] = dateTime.split("-");
     const {
       data: { data: legalCalendar },
@@ -69,8 +64,9 @@ export async function start({
           dayjs(item.workDate).isBefore(now, "day"))
     );
 
+    // console.log(chalk.green(`：${projectId}、${projectName}`));
+
     const saveList = workingListToSaveList(workingList, {
-      projectId,
       recordContent: content,
       prefix,
     });
@@ -86,10 +82,15 @@ export async function start({
     // return;
     let errorCount = 0;
     for (let i = 0; i < saveList.length; i++) {
+      const { id: projectId, projectName } = await getProjectId(
+        saveList[i].sendData.recordDate
+      );
+      saveList[i].sendData.projectId = projectId;
+
       if (errorCount === 0) {
         spainner.text = `正在发布日报: ${i + 1}/${
           saveList.length
-        } ${chalk.green(`（${saveList[i].title}）`)}`;
+        } ${chalk.green(`（${saveList[i].title}：${projectName}）`)}`;
       }
 
       try {
@@ -190,7 +191,6 @@ interface WorkItem {
 function workingListToSaveList(
   workingList: WorkItem[],
   config: {
-    projectId: string;
     recordContent: string;
     prefix: boolean;
   }
@@ -209,7 +209,7 @@ function workingListToSaveList(
       saveList.push({
         title: `${item.workDate}上午`,
         sendData: {
-          projectId: config.projectId,
+          projectId: "",
           recordType: "1",
           workingHours: 4,
           recordContent: config.prefix
@@ -232,7 +232,7 @@ function workingListToSaveList(
       saveList.push({
         title: `${item.workDate}下午`,
         sendData: {
-          projectId: config.projectId,
+          projectId: "",
           recordType: "2",
           workingHours: 4,
           recordContent: config.prefix
